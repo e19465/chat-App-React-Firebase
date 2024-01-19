@@ -110,6 +110,19 @@ const Span = styled.span`
   font-size: 13px;
 `;
 
+const FileInput = styled.input`
+  background-color: yellow;
+`;
+
+const FileInputLabel = styled.label`
+  width: 80%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 10px 0;
+  /* background-color: yellow; */
+`;
+
 const RegisterPage = () => {
   const usernameRegX = /^\S+$/;
   const usernameRef = useRef();
@@ -162,14 +175,14 @@ const RegisterPage = () => {
             name="confirmPassword"
             ref={confPassRef}
           />
-          <input
+          <FileInput
             type="file"
             name="avatar"
             id="avatar"
             accept="image/*"
             style={{ display: "none" }}
           />
-          <label
+          <FileInputLabel
             htmlFor="avatar"
             style={{
               display: "flex",
@@ -180,8 +193,8 @@ const RegisterPage = () => {
           >
             <IMG src={UPLOAD} alt="avatar" width={30} height={30} />
             <Span>Add an avatar</Span>
-          </label>
-          <Btn type="submit">register</Btn>
+          </FileInputLabel>
+          <Btn type="submit">sign up</Btn>
           <LastLine>
             Already have an account? <SLink to="/login">Login</SLink>
           </LastLine>
