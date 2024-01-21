@@ -1,7 +1,7 @@
 import { ref, uploadBytesResumable, getDownloadURL } from "firebase/storage";
 import { createUserWithEmailAndPassword, updateProfile } from "firebase/auth";
 import { useRef, useState } from "react";
-import { Link } from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom";
 import styled from "styled-components";
 import { auth, storage, db } from "../firebase";
 import { doc, setDoc } from "firebase/firestore";
@@ -123,6 +123,7 @@ const FileInputLabel = styled.label`
 `;
 
 const RegisterPage = () => {
+  const navigate = useNavigate();
   const usernameRegX = /^\S+$/;
   const usernameRef = useRef();
   const passwordRef = useRef();
@@ -167,6 +168,10 @@ const RegisterPage = () => {
             email: email,
             photoURL: downloadURL,
           });
+
+          await setDoc(doc(db, "userChats", response.user.uid), {});
+
+          navigate("/");
         } catch (error) {
           alert(error.message);
           console.error(
