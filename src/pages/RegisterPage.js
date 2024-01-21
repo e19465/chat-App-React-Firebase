@@ -1,7 +1,10 @@
-import { useRef } from "react";
+import { ref, uploadBytesResumable, getDownloadURL } from "firebase/storage";
+import { createUserWithEmailAndPassword, updateProfile } from "firebase/auth";
+import { useRef, useState } from "react";
 import { Link } from "react-router-dom";
 import styled from "styled-components";
-import UPLOAD from "../img/upload.png";
+import { auth, storage, db } from "../firebase";
+import { doc, setDoc } from "firebase/firestore";
 
 const RegMain = styled.div`
   width: 100%;
@@ -80,6 +83,12 @@ const Btn = styled.button`
     background-color: #333;
     color: orange;
   }
+
+  &:disabled {
+    cursor: not-allowed;
+    background-color: lightgray;
+    color: #333;
+  }
 `;
 
 const LastLine = styled.p`
@@ -99,28 +108,18 @@ const SLink = styled(Link)`
   }
 `;
 
-const IMG = styled.img`
-  width: 30px;
-  height: auto;
-  margin-right: 20px;
-`;
-
-const Span = styled.span`
-  color: #333;
-  font-size: 13px;
-`;
-
 const FileInput = styled.input`
-  background-color: yellow;
+  margin-top: 10px;
 `;
 
 const FileInputLabel = styled.label`
-  width: 80%;
+  width: 100%;
   display: flex;
   align-items: center;
   justify-content: center;
-  padding: 10px 0;
-  /* background-color: yellow; */
+  padding: 5px;
+  margin-bottom: 20px;
+  font-size: 14px;
 `;
 
 const RegisterPage = () => {
@@ -129,14 +128,59 @@ const RegisterPage = () => {
   const passwordRef = useRef();
   const emailRef = useRef();
   const confPassRef = useRef();
+  const [isFetching, setIsFetching] = useState(false);
+
   const handleRegister = async (e) => {
     e.preventDefault();
+    setIsFetching(false);
     if (usernameRegX.test(usernameRef.current.value)) {
-      alert("Submitted!");
-      usernameRef.current.value = "";
-      passwordRef.current.value = "";
-      emailRef.current.value = "";
-      confPassRef.current.value = "";
+      try {
+        setIsFetching(true);
+        const email = emailRef.current.value;
+        const password = passwordRef.current.value;
+        const file = e.target[4].files[0];
+        const displayName = usernameRef.current.value;
+
+        const response = await createUserWithEmailAndPassword(
+          auth,
+          email,
+          password
+        );
+
+        const storageRef = ref(storage, displayName);
+
+        const uploadTask = uploadBytesResumable(storageRef, file);
+
+        try {
+          await uploadTask;
+          const downloadURL = await getDownloadURL(uploadTask.snapshot.ref);
+
+          // Update user profile and save user data to Firestore
+          await updateProfile(response.user, {
+            displayName: displayName,
+            photoURL: downloadURL,
+          });
+
+          await setDoc(doc(db, "users", response.user.uid), {
+            uid: response.user.uid,
+            displayName: displayName,
+            email: email,
+            photoURL: downloadURL,
+          });
+        } catch (error) {
+          alert(error.message);
+          console.error(
+            "Error during file upload or download URL retrieval:",
+            error
+          );
+        }
+        console.log(response.user);
+        setIsFetching(false);
+      } catch (err) {
+        setIsFetching(false);
+        alert(err.message);
+        console.error(err);
+      }
     } else {
       alert("Username can't have white spaces!");
     }
@@ -175,26 +219,13 @@ const RegisterPage = () => {
             name="confirmPassword"
             ref={confPassRef}
           />
-          <FileInput
-            type="file"
-            name="avatar"
-            id="avatar"
-            accept="image/*"
-            style={{ display: "none" }}
-          />
-          <FileInputLabel
-            htmlFor="avatar"
-            style={{
-              display: "flex",
-              alignItems: "center",
-              cursor: "pointer",
-              margin: "10px 0",
-            }}
-          >
-            <IMG src={UPLOAD} alt="avatar" width={30} height={30} />
-            <Span>Add an avatar</Span>
+          <FileInput type="file" name="avatar" id="avatar" accept="image/*" />
+          <FileInputLabel htmlFor="avatar">
+            choose profile picture
           </FileInputLabel>
-          <Btn type="submit">sign up</Btn>
+          <Btn type="submit" disabled={isFetching}>
+            sign up
+          </Btn>
           <LastLine>
             Already have an account? <SLink to="/login">Login</SLink>
           </LastLine>
