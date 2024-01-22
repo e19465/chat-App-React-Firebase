@@ -171,7 +171,7 @@ const RegisterPage = () => {
 
           await setDoc(doc(db, "userChats", response.user.uid), {});
 
-          navigate("/");
+          navigate("/login");
         } catch (error) {
           alert(error.message);
           console.error(

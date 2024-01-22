@@ -1,5 +1,4 @@
 import styled from "styled-components";
-import DP from "../img/dp.jpg";
 
 const SingleChatMain = styled.div`
   width: 100%;
@@ -56,12 +55,18 @@ const Message = styled.p`
   overflow: hidden;
 `;
 
-const SingleChat = () => {
+const SingleChat = ({ user }) => {
   return (
     <SingleChatMain>
-      <IMG src={DP} alt="pro-pic" width={50} height={50} loading="lazy" />
+      <IMG
+        src={user.photoURL}
+        alt="pro-pic"
+        width={50}
+        height={50}
+        loading="lazy"
+      />
       <RightCont>
-        <NAME>Jane</NAME>
+        <NAME>{user.displayName}</NAME>
         <Message>
           I'll call back Lorem ipsum dolor sit amet, consectetur adipisicing
           elit. Quo, perferendis dolores. Praesentium recusandae accusantium

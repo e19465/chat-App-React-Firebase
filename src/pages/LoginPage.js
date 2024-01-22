@@ -1,6 +1,8 @@
-import { useRef } from "react";
-import { Link } from "react-router-dom";
+import { useRef, useState } from "react";
+import { Link, useNavigate } from "react-router-dom";
 import styled from "styled-components";
+import { signInWithEmailAndPassword } from "firebase/auth";
+import { auth } from "../firebase";
 
 const LogMain = styled.div`
   width: 100%;
@@ -79,6 +81,11 @@ const Btn = styled.button`
     background-color: #333;
     color: orange;
   }
+  &:disabled {
+    cursor: not-allowed;
+    background-color: lightgray;
+    color: #333;
+  }
 `;
 
 const LastLine = styled.p`
@@ -99,11 +106,26 @@ const SLink = styled(Link)`
 `;
 
 const RegisterPage = () => {
-  const usernameRef = useRef();
+  const [isFetching, setIsFetching] = useState(false);
+  const navigate = useNavigate();
+  const emailRef = useRef();
   const passwordRef = useRef();
   const handleLogin = async (e) => {
     e.preventDefault();
-    alert("Logged in");
+    setIsFetching(false);
+    try {
+      setIsFetching(true);
+      const email = emailRef.current.value;
+      const password = passwordRef.current.value;
+      const response = await signInWithEmailAndPassword(auth, email, password);
+      console.log(response);
+      setIsFetching(false);
+      navigate("/");
+    } catch (err) {
+      setIsFetching(false);
+      alert(err.message);
+      console.log(err);
+    }
   };
   return (
     <LogMain>
@@ -112,11 +134,11 @@ const RegisterPage = () => {
         <PARA>login</PARA>
         <StyledForm onSubmit={handleLogin}>
           <Input
-            type="text"
+            type="email"
             required
-            placeholder="Username"
-            name="username"
-            ref={usernameRef}
+            placeholder="Email"
+            name="email"
+            ref={emailRef}
           />
           <Input
             type="password"
@@ -125,7 +147,9 @@ const RegisterPage = () => {
             name="password"
             ref={passwordRef}
           />
-          <Btn type="submit">sign in</Btn>
+          <Btn type="submit" disabled={isFetching}>
+            sign in
+          </Btn>
           <LastLine>
             Don't have an account? <SLink to="/register">Register</SLink>
           </LastLine>

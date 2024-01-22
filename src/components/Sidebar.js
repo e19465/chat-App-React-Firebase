@@ -2,6 +2,7 @@ import styled from "styled-components";
 import Navbar from "./Navbar";
 import Search from "./Search";
 import Chats from "./Chats";
+import { useState } from "react";
 
 const SidebarMain = styled.div`
   background-color: #4b0082;
@@ -11,11 +12,13 @@ const SidebarMain = styled.div`
 `;
 
 const Sidebar = () => {
+  const [search, setSearch] = useState("");
+
   return (
     <SidebarMain>
       <Navbar />
-      <Search />
-      <Chats />
+      <Search search={search} setSearch={setSearch} />
+      <Chats searchVal={search} />
     </SidebarMain>
   );
 };

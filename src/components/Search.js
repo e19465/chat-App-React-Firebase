@@ -25,10 +25,15 @@ const Input = styled.input`
   }
 `;
 
-const Search = () => {
+const Search = ({ search, setSearch }) => {
   return (
     <SearchMain>
-      <Input type="text" placeholder="Search..." />
+      <Input
+        type="text"
+        placeholder="Search..."
+        value={search}
+        onChange={(e) => setSearch(e.target.value)}
+      />
     </SearchMain>
   );
 };

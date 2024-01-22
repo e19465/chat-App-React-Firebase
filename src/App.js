@@ -1,4 +1,4 @@
-import { Route, Routes } from "react-router-dom";
+import { Route, Routes, Navigate } from "react-router-dom";
 import RegisterPage from "./pages/RegisterPage";
 import Homepage from "./pages/Homepage";
 import LoginPage from "./pages/LoginPage";
@@ -7,14 +7,21 @@ import { AuthContext } from "./context/AuthContext";
 
 function App() {
   const { currentUser } = useContext(AuthContext);
-  console.log(currentUser);
+  // console.log(currentUser);
 
   return (
     <div className="App">
       <Routes>
-        <Route exact path="/" element={<Homepage />} />
+        <Route
+          exact
+          path="/"
+          element={currentUser ? <Homepage /> : <Navigate to="/login" />}
+        />
         <Route path="/login" element={<LoginPage />} />
-        <Route path="/register" element={<RegisterPage />} />
+        <Route
+          path="/register"
+          element={currentUser ? <Navigate to="/" /> : <RegisterPage />}
+        />
       </Routes>
     </div>
   );

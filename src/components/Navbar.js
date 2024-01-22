@@ -1,5 +1,8 @@
 import styled from "styled-components";
-import DP from "../img/dp.jpg";
+import { signOut } from "firebase/auth";
+import { auth } from "../firebase";
+import { useContext } from "react";
+import { AuthContext } from "../context/AuthContext";
 
 const NavbarMain = styled.div`
   background-color: #4b0082;
@@ -89,16 +92,24 @@ const NAME = styled.p`
 `;
 
 const Navbar = () => {
+  const { currentUser } = useContext(AuthContext);
+  // console.log(currentUser);
   return (
     <NavbarMain>
       <Left>swift chat</Left>
       <Right>
         <ImgContainer>
-          <IMG src={DP} alt="pro-pic" width={40} height={40} loading="lazy" />
-          <NAME>John</NAME>
+          <IMG
+            src={currentUser.photoURL}
+            alt="pro-pic"
+            width={40}
+            height={40}
+            loading="lazy"
+          />
+          <NAME>{currentUser.displayName}</NAME>
         </ImgContainer>
         <BtnContainer>
-          <BTN>logout</BTN>
+          <BTN onClick={() => signOut(auth)}>logout</BTN>
         </BtnContainer>
       </Right>
     </NavbarMain>
