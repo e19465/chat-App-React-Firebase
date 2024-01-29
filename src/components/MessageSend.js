@@ -1,6 +1,19 @@
 import styled from "styled-components";
-import { IoIosAttach, IoMdSend } from "react-icons/io";
+import { IoMdSend } from "react-icons/io";
 import { GrGallery } from "react-icons/gr";
+import { useContext, useState } from "react";
+import { AuthContext } from "../context/AuthContext";
+import { ChatContext } from "../context/ChatContext";
+import {
+  Timestamp,
+  arrayUnion,
+  doc,
+  serverTimestamp,
+  updateDoc,
+} from "firebase/firestore";
+import { db, storage } from "../firebase";
+import { v4 as uuid } from "uuid";
+import { getDownloadURL, ref, uploadBytesResumable } from "firebase/storage";
 
 const MessageMain = styled.div`
   width: 100%;
@@ -67,28 +80,98 @@ const Btn = styled.button`
 `;
 
 const MessageSend = () => {
-  const handleMessageSend = (e) => {
+  const { currentUser } = useContext(AuthContext);
+  const { data } = useContext(ChatContext);
+  const [messageText, setMessageText] = useState("");
+  const [img, setImg] = useState(null);
+
+  const handleMessageSend = async (e) => {
     e.preventDefault();
-    alert("Message Send!");
+    // alert("message send");
+
+    if (img) {
+      const storageRef = ref(storage, uuid());
+
+      const uploadTask = uploadBytesResumable(storageRef, img);
+
+      try {
+        await uploadTask;
+        const downloadURL = await getDownloadURL(uploadTask.snapshot.ref);
+        await updateDoc(doc(db, "chats", data.chatId), {
+          messages: arrayUnion({
+            id: uuid(),
+            text: messageText,
+            senderId: currentUser.uid,
+            date: Timestamp.now(),
+            img: downloadURL,
+          }),
+        });
+      } catch (error) {
+        alert(error.message);
+        console.error(
+          "Error during file upload or download URL retrieval:",
+          error
+        );
+        alert("Error during file upload or download URL retrieval");
+      }
+    } else {
+      try {
+        await updateDoc(doc(db, "chats", data.chatId), {
+          messages: arrayUnion({
+            id: uuid(),
+            text: messageText,
+            senderId: currentUser.uid,
+            date: Timestamp.now(),
+          }),
+        });
+
+        await updateDoc(doc(db, "userChats", currentUser.uid), {
+          [data.chatId + ".lastMessage"]: {
+            messageText,
+          },
+          [data.chatId + ".date"]: serverTimestamp(),
+        });
+
+        await updateDoc(doc(db, "userChats", data.user.uid), {
+          [data.chatId + ".lastMessage"]: {
+            messageText,
+          },
+          [data.chatId + ".date"]: serverTimestamp(),
+        });
+
+        setMessageText("");
+        setImg(null);
+      } catch (err) {
+        console.log(err);
+      }
+    }
   };
 
   return (
     <MessageMain>
       <Form onSubmit={handleMessageSend}>
-        <Input type="text" placeholder="message..." />
-        <Input type="file" id="file_attach" style={{ display: "none" }} />
+        <Input
+          type="text"
+          placeholder="message..."
+          value={messageText}
+          onChange={(e) => setMessageText(e.target.value)}
+        />
+        {/* <Input type="file" id="file_attach" style={{ display: "none" }} /> */}
         <Input
           type="file"
           accept="image/*"
           id="img_attach"
+          name="img_attach"
           style={{ display: "none" }}
+          // value={img}
+          onChange={(e) => setImg(e.target.files[0])}
         />
         <OtherContainer>
-          <label htmlFor="file_attach">
+          {/* <label htmlFor="file_attach">
             <Container>
               <IoIosAttach />
             </Container>
-          </label>
+          </label> */}
           <label htmlFor="img_attach">
             <Container>
               <GrGallery />

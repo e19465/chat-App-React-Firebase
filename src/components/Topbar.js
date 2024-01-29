@@ -1,6 +1,8 @@
 import styled from "styled-components";
 import { IoVideocamOutline, IoPersonAddOutline } from "react-icons/io5";
 import { BsThreeDots } from "react-icons/bs";
+import { useContext } from "react";
+import { ChatContext } from "../context/ChatContext";
 
 const TopMain = styled.div`
   width: 100%;
@@ -39,9 +41,11 @@ const Icon = styled.div`
 `;
 
 const Topbar = () => {
+  const { data } = useContext(ChatContext);
+
   return (
     <TopMain>
-      <NAME>Jane</NAME>
+      <NAME>{data.user?.displayName}</NAME>
       <ICONS>
         <Icon>
           <IoVideocamOutline />

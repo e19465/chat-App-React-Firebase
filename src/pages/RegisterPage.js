@@ -147,30 +147,25 @@ const RegisterPage = () => {
           email,
           password
         );
-
         const storageRef = ref(storage, displayName);
-
         const uploadTask = uploadBytesResumable(storageRef, file);
-
         try {
           await uploadTask;
           const downloadURL = await getDownloadURL(uploadTask.snapshot.ref);
-
           // Update user profile and save user data to Firestore
           await updateProfile(response.user, {
             displayName: displayName,
             photoURL: downloadURL,
           });
-
           await setDoc(doc(db, "users", response.user.uid), {
             uid: response.user.uid,
             displayName: displayName,
             email: email,
             photoURL: downloadURL,
           });
-
+          console.log("c");
           await setDoc(doc(db, "userChats", response.user.uid), {});
-
+          setIsFetching(false);
           navigate("/login");
         } catch (error) {
           alert(error.message);
@@ -179,8 +174,7 @@ const RegisterPage = () => {
             error
           );
         }
-        console.log(response.user);
-        setIsFetching(false);
+        // console.log(response.user);
       } catch (err) {
         setIsFetching(false);
         alert(err.message);
@@ -190,6 +184,7 @@ const RegisterPage = () => {
       alert("Username can't have white spaces!");
     }
   };
+
   return (
     <RegMain>
       <FormConatainer>

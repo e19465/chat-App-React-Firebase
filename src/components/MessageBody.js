@@ -1,5 +1,9 @@
 import styled from "styled-components";
 import SingleMessage from "./SingleMessage";
+import { ChatContext } from "../context/ChatContext";
+import { useContext, useEffect, useState } from "react";
+import { doc, onSnapshot } from "firebase/firestore";
+import { db } from "../firebase";
 
 const MessageBodyMain = styled.div`
   flex: 1;
@@ -11,24 +15,34 @@ const MessageBodyMain = styled.div`
 `;
 
 const MessageBody = () => {
+  const [messages, setMessages] = useState([]);
+  const { data } = useContext(ChatContext);
+
+  useEffect(() => {
+    let unsub;
+
+    if (data.chatId !== null) {
+      unsub = onSnapshot(doc(db, "chats", data.chatId), (doc) => {
+        doc.exists() && setMessages(doc.data().messages);
+      });
+    }
+
+    return () => {
+      if (typeof unsub === "function") {
+        unsub();
+      }
+    };
+  }, [data.chatId]);
+
   return (
     <MessageBodyMain>
-      <SingleMessage />
-      <SingleMessage />
-      <SingleMessage />
-      <SingleMessage />
-      <SingleMessage />
-      <SingleMessage />
-      <SingleMessage />
-      <SingleMessage />
-      <SingleMessage />
-      <SingleMessage />
-      <SingleMessage />
-      <SingleMessage />
-      <SingleMessage />
-      <SingleMessage />
-      <SingleMessage />
-      <SingleMessage />
+      {messages.length ? (
+        messages?.map((message) => (
+          <SingleMessage key={message.id} message={message} />
+        ))
+      ) : (
+        <div>No messages to show</div>
+      )}
     </MessageBodyMain>
   );
 };

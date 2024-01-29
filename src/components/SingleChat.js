@@ -1,4 +1,15 @@
+import { useContext } from "react";
 import styled from "styled-components";
+import { AuthContext } from "../context/AuthContext";
+import {
+  doc,
+  getDoc,
+  // getDocs,
+  serverTimestamp,
+  setDoc,
+  updateDoc,
+} from "firebase/firestore";
+import { db } from "../firebase";
 
 const SingleChatMain = styled.div`
   width: 100%;
@@ -55,9 +66,53 @@ const Message = styled.p`
   overflow: hidden;
 `;
 
-const SingleChat = ({ user }) => {
+const SingleChat = ({ user, setSearch, setUsers }) => {
+  const { currentUser } = useContext(AuthContext);
+
+  const handleMessageSelect = async () => {
+    // check whether the group(chats in firestore) exists, if not create new one
+    const combinedId =
+      currentUser.uid > user.uid
+        ? currentUser.uid + user.uid
+        : user.uid + currentUser.uid;
+
+    try {
+      const response = await getDoc(doc(db, "chats", combinedId));
+
+      if (!response.exists()) {
+        // create chat in a chats collection
+        await setDoc(doc(db, "chats", combinedId), { messages: [] });
+
+        // create user chats
+        await updateDoc(doc(db, "userChats", currentUser.uid), {
+          [combinedId + ".userInfo"]: {
+            uid: user.uid,
+            displayName: user.displayName,
+            photoURL: user.photoURL,
+          },
+          [combinedId + ".date"]: serverTimestamp(),
+        });
+        await updateDoc(doc(db, "userChats", user.uid), {
+          [combinedId + ".userInfo"]: {
+            uid: currentUser.uid,
+            displayName: currentUser.displayName,
+            photoURL: currentUser.photoURL,
+          },
+          [combinedId + ".date"]: serverTimestamp(),
+        });
+      }
+    } catch (err) {
+      console.log(err);
+    }
+
+    setSearch("");
+    setUsers([]);
+
+    // create user chats
+  };
+
   return (
-    <SingleChatMain>
+    <SingleChatMain onClick={handleMessageSelect}>
       <IMG
         src={user.photoURL}
         alt="pro-pic"

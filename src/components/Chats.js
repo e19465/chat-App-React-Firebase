@@ -6,8 +6,9 @@ import { db } from "../firebase";
 
 const ChatsMain = styled.div`
   background-color: #4b0082;
+  /* background-color: red; */
   width: 100%;
-  height: calc(100% - 100px);
+  height: auto;
   border-radius: 0 0 0 10px;
   overflow-y: auto;
 
@@ -34,19 +35,19 @@ const Stp = styled.p`
   font-size: 18px;
 `;
 
-const Chats = ({ searchVal }) => {
+const Chats = ({ search, setSearch }) => {
   const [users, setUsers] = useState([]);
   const [isFetching, setIsFetching] = useState(false);
 
   useEffect(() => {
     const getUsers = async () => {
       setIsFetching(false);
-      if (searchVal.trim() !== "") {
-        // Only execute the query if searchVal is not empty
+      if (search.trim() !== "") {
+        // Only execute the query if search is not empty
         const q = query(
           collection(db, "users"),
-          where("displayName", ">=", searchVal.toLowerCase()),
-          where("displayName", "<=", searchVal.toLowerCase() + "\uf8ff")
+          where("displayName", ">=", search.toLowerCase()),
+          where("displayName", "<=", search.toLowerCase() + "\uf8ff")
         );
 
         try {
@@ -58,29 +59,36 @@ const Chats = ({ searchVal }) => {
           });
           setUsers(usersData);
           setIsFetching(false);
-          console.log(usersData);
+          // console.log(usersData);
         } catch (err) {
           setIsFetching(false);
           alert(err.message);
           console.log(err);
         }
       } else {
-        // Reset users when searchVal is empty
+        // Reset users when search is empty
         setUsers([]);
       }
     };
 
     getUsers();
-  }, [searchVal]);
+  }, [search]);
 
   return (
     <ChatsMain>
       {isFetching ? (
         <Stp>Loading...</Stp>
-      ) : searchVal && !users.length ? (
+      ) : search && !users.length ? (
         <Stp>No users found!</Stp>
       ) : (
-        users.map((user) => <SingleChat key={user.uid} user={user} />)
+        users?.map((user) => (
+          <SingleChat
+            setUsers={setUsers}
+            setSearch={setSearch}
+            key={user.uid}
+            user={user}
+          />
+        ))
       )}
     </ChatsMain>
   );

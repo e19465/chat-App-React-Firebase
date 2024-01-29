@@ -7,7 +7,7 @@ import { AuthContext } from "./context/AuthContext";
 
 function App() {
   const { currentUser } = useContext(AuthContext);
-  // console.log(currentUser);
+  console.log("App: ", currentUser);
 
   return (
     <div className="App">
@@ -18,10 +18,7 @@ function App() {
           element={currentUser ? <Homepage /> : <Navigate to="/login" />}
         />
         <Route path="/login" element={<LoginPage />} />
-        <Route
-          path="/register"
-          element={currentUser ? <Navigate to="/" /> : <RegisterPage />}
-        />
+        <Route path="/register" element={<RegisterPage />} />
       </Routes>
     </div>
   );
